@@ -3,7 +3,6 @@ use axum::http::StatusCode;
 use axum::routing::{get, put};
 use tracing::info;
 use crate::http::dto::user::{User, UserResponse, UpdateUserRequest};
-use crate::http::model::values::email::Email;
 
 pub(crate) fn user_routes() -> Router {
   Router::new()

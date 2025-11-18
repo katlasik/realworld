@@ -4,7 +4,7 @@ use axum::http::StatusCode;
 use axum::routing::{delete, get, post};
 use tracing::info;
 use crate::http::dto::profile::{Profile, ProfileResponse};
-use crate::http::model::values::username::Username;
+use crate::model::values::username::Username;
 
 pub (crate) fn profile_routes() -> Router {
   Router::new()

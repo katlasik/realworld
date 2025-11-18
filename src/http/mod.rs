@@ -1,6 +1,5 @@
 mod routes;
 mod dto;
-mod model;
 
 use routes::*;
 

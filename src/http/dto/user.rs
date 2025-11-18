@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use crate::http::model::values::email::Email;
-use crate::http::model::values::username::Username;
+use crate::model::values::email::Email;
+use crate::model::values::username::Username;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserResponse {

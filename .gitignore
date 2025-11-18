@@ -37,5 +37,8 @@ yarn-error.log*
 
 /target
 
+# Environment variables
+.env
+
 #Claude
 .claude

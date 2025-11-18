@@ -1,4 +1,5 @@
-use tryphon::{Config, ErrorPrintMode};
+use chrono::format::Pad;
+use tryphon::{Config, ErrorPrintMode, Secret};
 
 #[derive(Debug, Config)]
 pub struct HttpConfig {
@@ -15,12 +16,42 @@ impl HttpConfig {
 }
 
 #[derive(Debug, Config)]
+pub struct DatabaseConfig {
+    #[env("DATABASE_USER")]
+    pub(crate) user: String,
+    #[env("DATABASE_NAME")]
+    pub(crate) database: String,
+    #[env("DATABASE_PASSWORD")]
+    pub(crate) password: Secret<String>,
+    #[env("DATABASE_ADDRESS")]
+    pub(crate) address: String,
+    #[env("DATABASE_MAX_CONNECTIONS")] #[default(5)]
+    pub(crate) max_connections: u32,
+}
+
+impl DatabaseConfig {
+    pub(crate) fn connection_url(&self) -> String {
+        format!(
+            "postgresql://{}:{}@{}/{}",
+            self.user,
+            *self.password,
+            self.address,
+            self.database
+        )
+    }
+}
+
+#[derive(Debug, Config)]
 pub struct AppConfig {
     #[config]
-    pub(crate) http: HttpConfig
+    pub(crate) http: HttpConfig,
+    #[config]
+    pub(crate) database: DatabaseConfig,
 }
 
 pub fn load_config() -> AppConfig {
+  dotenvy::dotenv().ok();
+  
   match AppConfig::load() {
     Ok(cfg) => cfg,
     Err(e) => {

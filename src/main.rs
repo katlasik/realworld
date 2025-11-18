@@ -1,38 +1,25 @@
+use ::tracing::info;
 use axum::Router;
-use tracing::log::info;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
 use crate::app_config::load_config;
+use crate::database::connect_db;
 use crate::http::router;
+use crate::server::init_server;
+use crate::tracing::init_tracing;
 
 mod app_config;
 mod http;
-
+mod database;
+mod tracing;
+mod server;
+mod model;
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "realworld=debug,tower_http=debug,axum=trace".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
 
+    init_tracing();
     info!("Starting realworld server...");
-
     let config = load_config();
+    let db = connect_db(&config.database).await.unwrap();
+    init_server(&config.http).await.unwrap();
 
-    info!("Server running on {}", config.http.url());
-
-    let listener = tokio::net::TcpListener::bind(config.http.url())
-        .await
-        .unwrap();
-
-    let router = Router::new()
-      .nest("/api", router());
-
-    axum::serve(listener, router)
-        .await
-        .unwrap();
 }

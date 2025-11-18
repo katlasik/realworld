@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::http::model::values::email::Email;
+use crate::model::values::email::Email;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginRequest {
