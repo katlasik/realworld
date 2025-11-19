@@ -1,4 +1,3 @@
-use chrono::format::Pad;
 use tryphon::{Config, ErrorPrintMode, Secret};
 
 #[derive(Debug, Config, Clone)]

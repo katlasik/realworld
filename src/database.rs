@@ -1,7 +1,7 @@
 use crate::app_config::DatabaseConfig;
 use sqlx::migrate::MigrateError;
 use sqlx::postgres::PgPoolOptions;
-use sqlx::{Error, Pool, Postgres, pool};
+use sqlx::{Error, Pool, Postgres};
 use tracing::info;
 
 #[derive(Clone)]

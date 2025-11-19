@@ -1,5 +1,5 @@
 use crate::app_error::AppError;
-use crate::domain::user_repository::UserRepository;
+use crate::domain::user_repository::{IndexedUserField, UserRepository};
 use crate::model::persistence::user::User;
 use crate::model::values::email::Email;
 use anyhow::Result;
@@ -27,12 +27,12 @@ impl UserService {
     pub async fn register_user(&self, request: RegisterCommand) -> Result<(User, String), AppError> {
         let password_hash = self.hasher.hash_password(&request.password)?;
 
-        if self.user_repo.get_user_by_username(request.username.clone()).await?.is_some() {
+        if self.user_repo.get_user_by(IndexedUserField::Username, request.username.clone()).await?.is_some() {
             return Err(AppError::Conflict(format!(
                 "Username '{}' is already taken",
                 request.username
             )));
-        } else if self.user_repo.get_user_by_email(request.email.clone()).await?.is_some() {
+        } else if self.user_repo.get_user_by(IndexedUserField::Email, request.email.clone()).await?.is_some() {
             return Err(AppError::Conflict(format!(
                 "Email '{}' is already registered",
                 request.email
@@ -54,7 +54,7 @@ impl UserService {
     pub async fn login_user(&self, email: Email, password: String) -> Result<(User, String), AppError> {
         let user = self
             .user_repo
-            .get_user_by_email(email.clone())
+            .get_user_by(IndexedUserField::Email, email.clone())
             .await?
             .ok_or_else(|| AppError::Unauthorized)?;
 
@@ -75,7 +75,7 @@ impl UserService {
     pub async fn get_user_by_id(&self, user_id: Uuid) -> Result<(User, String), AppError> {
         let user = self
             .user_repo
-            .get_user_by_id(user_id)
+            .get_user_by(IndexedUserField::Id, user_id)
             .await?
             .ok_or(AppError::Unauthorized)?;
 

@@ -1,23 +1,28 @@
 use crate::app_error::AppError;
 use crate::database::Database;
 use crate::model::persistence::user::User;
-use crate::model::values::email::Email;
-use crate::model::values::username::Username;
 use anyhow::Result;
-use sqlx::error::ErrorKind;
-use sqlx::postgres::PgRow;
-use sqlx::{Error, Row};
-use uuid::Uuid;
+use sqlx::{Encode, Postgres, Type};
 
 #[derive(Clone)]
 pub struct UserRepository {
     database: Database,
 }
 
-enum IndexedUserField {
+pub enum IndexedUserField {
   Email,
   Username,
   Id
+}
+
+impl IndexedUserField {
+  fn to_field_name(&self) -> &str {
+      match self {
+          IndexedUserField::Email => "email",
+          IndexedUserField::Username => "username",
+          IndexedUserField::Id => "id",
+      }
+  }
 }
 
 impl UserRepository {
@@ -49,45 +54,23 @@ impl UserRepository {
 
 
 
-    pub(crate) async fn get_user_by_username(&self, username: Username) -> Result<Option<User>, AppError> {
-        let row = sqlx::query(
+    pub(crate) async fn get_user_by<T>(&self, field: IndexedUserField, value: T) -> Result<Option<User>, AppError>
+    where
+        T: for<'a> Encode<'a, Postgres> + Type<Postgres> + Send,
+    {
+
+
+        let query = format!(
             r#"
             SELECT id, email, username, password_hash, bio, image
             FROM users
-            WHERE username = $1
+            WHERE {} = $1
             "#,
-        )
-        .bind(username)
-        .fetch_optional(self.database.pool())
-        .await?;
+            field.to_field_name()
+        );
 
-        Ok(row.map(User::from_row))
-    }
-
-    pub(crate) async fn get_user_by_email(&self, email: Email) -> Result<Option<User>, AppError> {
-        let row = sqlx::query(
-            r#"
-            SELECT id, email, username, password_hash, bio, image
-            FROM users
-            WHERE email = $1
-            "#,
-        )
-        .bind(email)
-        .fetch_optional(self.database.pool())
-        .await?;
-
-        Ok(row.map(User::from_row))
-    }
-
-    pub(crate) async fn get_user_by_id(&self, id: Uuid) -> Result<Option<User>, AppError> {
-        let row = sqlx::query(
-            r#"
-            SELECT id, email, username, password_hash, bio, image
-            FROM users
-            WHERE id = $1
-            "#,
-        )
-        .bind(id)
+        let row = sqlx::query(&query)
+        .bind(value)
         .fetch_optional(self.database.pool())
         .await?;
 

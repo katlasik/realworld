@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use axum::{
   extract::{FromRequestParts},
   http::{request::Parts, StatusCode},
@@ -12,7 +11,6 @@ impl AuthToken {
   }
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for AuthToken
 where
   S: Send + Sync,
@@ -32,4 +30,5 @@ where
 
     Ok(AuthToken(token.to_string()))
   }
+
 }

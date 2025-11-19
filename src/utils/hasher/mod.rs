@@ -4,7 +4,6 @@ use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
 };
-use crate::app_error::AppError;
 use crate::utils::hasher::hashing_error::HashingError;
 
 #[derive(Clone)]

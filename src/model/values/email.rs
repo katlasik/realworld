@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sqlx::{Decode, Type};
+use sqlx::Type;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use validator::ValidateEmail;
