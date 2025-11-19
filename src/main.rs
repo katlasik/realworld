@@ -26,15 +26,18 @@ async fn main() {
         .await
         .expect("Failed to connect to database");
 
+    let jwt_generator = JwtGenerator::new(config.secrets.jwt.0.clone());
+
     let user_service = domain::user_service::UserService::new(
       UserRepository::new(db),
       Hasher::new(config.secrets.pepper.0.clone()),
-      JwtGenerator::new(config.secrets.jwt.0.clone()),
+      jwt_generator.clone(),
     );
 
     let app_state = http::AppState {
         user_service,
         config: config.clone(),
+        jwt_generator,
     };
 
     init_server(&config.http, app_state)

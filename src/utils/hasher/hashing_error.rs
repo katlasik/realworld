@@ -10,6 +10,6 @@ pub enum HashingError {
 
 impl From<HashingError> for AppError {
   fn from(value: HashingError) -> Self {
-    AppError::Other(value.to_string())
+    AppError::Other(anyhow::Error::from(value))
   }
 }

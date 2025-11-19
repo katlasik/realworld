@@ -1,11 +1,12 @@
 pub(crate) mod dto;
+pub(crate) mod extractors;
 mod routes;
 
 use routes::*;
 
 use crate::app_config::AppConfig;
-use crate::database::Database;
 use crate::domain::user_service::UserService;
+use crate::utils::jwt::JwtGenerator;
 use axum::Router;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
 
@@ -29,4 +30,5 @@ pub(crate) fn router() -> Router<AppState> {
 pub struct AppState {
     pub config: AppConfig,
     pub user_service: UserService,
+    pub jwt_generator: JwtGenerator,
 }

@@ -6,6 +6,7 @@ use anyhow::Result;
 use crate::domain::commands::register_command::RegisterCommand;
 use crate::utils::hasher::Hasher;
 use crate::utils::jwt::JwtGenerator;
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct UserService {
@@ -43,11 +44,9 @@ impl UserService {
             .insert_user(&request.email, &request.username, &password_hash)
             .await?;
 
-        // Generate JWT token
         let token = self
             .jwt
-            .generate_token(user.id)
-            .map_err(|e| AppError::Other(format!("Failed to generate token: {}", e)))?;
+            .generate_token(user.id)?;
 
         Ok((user, token))
     }
@@ -66,14 +65,24 @@ impl UserService {
         if is_valid {
           let token = self
             .jwt
-            .generate_token(user.id)
-            .map_err(|e| AppError::Other(format!("Failed to generate token: {}", e)))?;
+            .generate_token(user.id)?;
           Ok((user, token))
         } else {
             Err(AppError::Unauthorized)
         }
+    }
 
-        // Generate JWT token
+    pub async fn get_user_by_id(&self, user_id: Uuid) -> Result<(User, String), AppError> {
+        let user = self
+            .user_repo
+            .get_user_by_id(user_id)
+            .await?
+            .ok_or(AppError::Unauthorized)?;
 
+        let token = self
+            .jwt
+            .generate_token(user.id)?;
+
+        Ok((user, token))
     }
 }

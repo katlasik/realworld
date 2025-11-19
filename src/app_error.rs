@@ -15,7 +15,7 @@ pub enum AppError {
     #[error("Database error")]
     Db(#[from] sqlx::Error),
     #[error("Internal error: {0}")]
-    Other(String),
+    Other(#[from] anyhow::Error),
 }
 
 impl IntoResponse for AppError {
