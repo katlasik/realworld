@@ -2,8 +2,7 @@ use crate::app_error::AppError;
 use crate::database::Database;
 use crate::model::persistence::user::User;
 use anyhow::Result;
-use sqlx::{Encode, Execute, Postgres, QueryBuilder, Type};
-use tracing::error;
+use sqlx::{Encode, Postgres, QueryBuilder, Type};
 use crate::persistence::indexed_user_field::IndexedUserField;
 use crate::persistence::params::insert_user_params::InsertUserParams;
 use crate::persistence::params::update_user_params::UpdateUserParams;
@@ -20,7 +19,7 @@ impl UserRepository {
 
     pub(crate) async fn insert_user(
         &self,
-        params: InsertUserParams<'_>,
+        params: InsertUserParams,
     ) -> Result<User, AppError> {
         let row = sqlx::query(
             r#"

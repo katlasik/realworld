@@ -47,9 +47,9 @@ impl UserService {
             .user_repo
             .insert_user(
               InsertUserParams {
-                  email: &command.email.to_string(),
-                  username: &command.username.to_string(),
-                  password_hash: &password_hash,
+                  email: command.email,
+                  username: command.username,
+                  password_hash: password_hash,
               }
             )
             .await?;

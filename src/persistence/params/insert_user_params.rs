@@ -1,7 +1,10 @@
+use crate::model::values::email::Email;
+use crate::model::values::password_hash::PasswordHash;
+use crate::model::values::username::Username;
 
-pub struct InsertUserParams<'a> {
-  pub email: &'a str,
-  pub username: &'a str,
-  pub password_hash: &'a str,
+pub struct InsertUserParams {
+  pub email: Email,
+  pub username: Username,
+  pub password_hash: PasswordHash,
 }
 

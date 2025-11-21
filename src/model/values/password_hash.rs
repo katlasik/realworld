@@ -17,6 +17,12 @@ impl PasswordHash {
     }
 }
 
+impl From<&str> for PasswordHash {
+  fn from(value: &str) -> Self {
+    PasswordHash(value.to_string())
+  }
+}
+
 impl From<String> for PasswordHash {
     fn from(value: String) -> Self {
         PasswordHash(value)
