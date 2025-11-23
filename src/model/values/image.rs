@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -61,5 +62,11 @@ impl Deref for Image {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<Image> for Value {
+    fn from(i: Image) -> Self {
+        Value::String(Some(Box::new(i.value().to_string())))
     }
 }

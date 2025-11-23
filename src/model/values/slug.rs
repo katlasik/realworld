@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -78,5 +79,17 @@ impl Deref for Slug {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<Slug> for Value {
+    fn from(s: Slug) -> Self {
+        Value::String(Some(Box::new(s.value().to_string())))
+    }
+}
+
+impl From<&Slug> for Value {
+    fn from(s: &Slug) -> Self {
+        Value::String(Some(Box::new(s.value().to_string())))
     }
 }

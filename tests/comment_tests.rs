@@ -97,7 +97,6 @@ async fn test_add_comment_to_article() {
 
     assert_eq!(body["comment"]["body"], "Great article!");
     assert_eq!(body["comment"]["author"]["username"], "user");
-    assert!(body["comment"]["id"].is_number());
 }
 
 #[tokio::test]
@@ -247,7 +246,7 @@ async fn test_delete_comment_by_author() {
         .await
         .unwrap();
     let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    let comment_id = body["comment"]["id"].as_i64().unwrap();
+    let comment_id = body["comment"]["id"].as_str().unwrap();
 
     let response = app
         .oneshot(
@@ -295,7 +294,7 @@ async fn test_delete_comment_by_non_author_fails() {
         .await
         .unwrap();
     let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    let comment_id = body["comment"]["id"].as_i64().unwrap();
+    let comment_id = body["comment"]["id"].as_str().unwrap();
 
     let response = app
         .oneshot(
@@ -342,7 +341,7 @@ async fn test_delete_comment_without_authentication_fails() {
         .await
         .unwrap();
     let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
-    let comment_id = body["comment"]["id"].as_i64().unwrap();
+    let comment_id = body["comment"]["id"].as_str().unwrap();
 
     let response = app
         .oneshot(

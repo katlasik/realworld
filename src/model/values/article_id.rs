@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -38,5 +39,11 @@ impl From<ArticleId> for Uuid {
 impl Display for ArticleId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl From<ArticleId> for Value {
+    fn from(id: ArticleId) -> Self {
+        Value::Uuid(Some(Box::new(id.value())))
     }
 }

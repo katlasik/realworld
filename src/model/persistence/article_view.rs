@@ -31,26 +31,6 @@ pub struct ArticleView {
 
 impl ArticleView {
 
-    pub fn column_names(table: &str) -> Vec<String> {
-      vec![
-        "id",
-        "slug",
-        "title",
-        "description",
-        "tag_list",
-        "created_at",
-        "updated_at",
-        "favorited",
-        "favorites_count",
-        "author_id",
-        "author_username",
-        "author_bio",
-        "author_image",
-        "following",
-        "body",
-      ].iter().map(|col| format!("{}.{}", table, col)).collect()
-    }
-
   pub fn from_row(row: sqlx::postgres::PgRow) -> ArticleView {
     ArticleView {
       id: row.get("id"),
@@ -88,23 +68,6 @@ pub struct ArticleListView {
 }
 
 impl ArticleListView {
-
-  pub fn column_names(table: &str)  -> Vec<String> {
-    [
-      "slug",
-      "title",
-      "description",
-      "tag_list",
-      "created_at",
-      "updated_at",
-      "favorited",
-      "favorites_count",
-      "author_username",
-      "author_bio",
-      "author_image",
-      "following",
-    ].iter().map(|col| format!("{}.{}", table, col)).collect()
-  }
 
   pub fn from_row(row: sqlx::postgres::PgRow) -> ArticleListView {
     ArticleListView {

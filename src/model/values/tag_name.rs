@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -57,5 +58,17 @@ impl Deref for TagName {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<TagName> for Value {
+    fn from(t: TagName) -> Self {
+        Value::String(Some(Box::new(t.value().to_string())))
+    }
+}
+
+impl From<&TagName> for Value {
+    fn from(t: &TagName) -> Self {
+        Value::String(Some(Box::new(t.value().to_string())))
     }
 }

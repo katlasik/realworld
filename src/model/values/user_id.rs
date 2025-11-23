@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -41,5 +42,11 @@ impl Deref for UserId {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<UserId> for Value {
+    fn from(id: UserId) -> Self {
+        Value::Uuid(Some(Box::new(id.value())))
     }
 }

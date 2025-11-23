@@ -18,21 +18,6 @@ pub struct CommentView {
 }
 
 impl CommentView {
-    pub fn column_names(table: &str) -> Vec<String> {
-        [
-            "id",
-            "body",
-            "created_at",
-            "updated_at",
-            "author_username",
-            "author_bio",
-            "author_image",
-            "following",
-        ]
-        .iter()
-        .map(|col| format!("{}.{}", table, col))
-        .collect()
-    }
 
     pub fn from_row(row: sqlx::postgres::PgRow) -> CommentView {
         CommentView {

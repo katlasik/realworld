@@ -4,6 +4,7 @@ use crate::model::values::image::Image;
 use crate::model::values::password_hash::PasswordHash;
 use crate::model::values::user_id::UserId;
 use crate::model::values::username::Username;
+use crate::persistence::schema::Users;
 
 pub struct UpdateUserParams {
     pub(crate) user_id: UserId,
@@ -15,26 +16,23 @@ pub struct UpdateUserParams {
 }
 
 impl UpdateUserParams {
-    pub fn as_list(&self) -> Vec<(String, String)> {
+    pub fn as_list(&self) -> Vec<(Users, String)> {
         let mut fields = Vec::new();
 
         if let Some(email) = &self.email {
-            fields.push(("email".to_string(), email.value().to_string()));
+            fields.push((Users::Email, email.value().to_string()));
         }
         if let Some(username) = &self.username {
-            fields.push(("username".to_string(), username.value().to_string()));
+            fields.push((Users::Username, username.value().to_string()));
         }
         if let Some(password_hash) = &self.password_hash {
-            fields.push((
-                "password_hash".to_string(),
-                password_hash.value().to_string(),
-            ));
+            fields.push((Users::PasswordHash, password_hash.value().to_string()));
         }
         if let Some(bio) = &self.bio {
-            fields.push(("bio".to_string(), bio.value().to_string()));
+            fields.push((Users::Bio, bio.value().to_string()));
         }
         if let Some(image) = &self.image {
-            fields.push(("image".to_string(), image.value().to_string()));
+            fields.push((Users::Image, image.value().to_string()));
         }
 
         fields

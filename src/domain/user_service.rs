@@ -9,6 +9,7 @@ use crate::persistence::user_repository::UserRepository;
 use crate::utils::hasher::Hasher;
 use anyhow::Result;
 use tracing::log::info;
+use crate::model::values::username::Username;
 
 #[derive(Clone)]
 pub struct UserService {
@@ -85,9 +86,17 @@ impl UserService {
         value: T,
     ) -> Result<Option<User>, AppError>
     where
-        T: for<'a> sqlx::Encode<'a, sqlx::Postgres> + sqlx::Type<sqlx::Postgres> + Send,
+        sea_query::Value: From<T>,
     {
         self.user_repo.get_user_by(field, value).await
+    }
+
+    pub async fn get_user_by_username(
+        &self,
+        username: Username
+    ) -> Result<Option<User>, AppError>
+    {
+        self.user_repo.get_user_by(IndexedUserField::Username, username).await
     }
 
     pub(crate) async fn update_user(&self, command: UpdateUserCommand) -> Result<User, AppError> {

@@ -30,7 +30,7 @@ impl ArticleService {
     async fn verify_slug(&self, slug: &Slug) -> Result<(), AppError> {
       if self
         .article_repo
-        .get_article_by(IndexedArticleField::Slug, &slug)
+        .get_article_by(IndexedArticleField::Slug, slug)
         .await?
         .is_some()
       {
@@ -78,7 +78,7 @@ impl ArticleService {
             if let Some(ref slug) = params.slug {
               self.verify_slug(slug).await?;
             }
-            
+
             let article = self.article_repo.update_article(params).await?;
             Ok(self.article_repo.get_article_by_id(article.id, Some(user_id)).await?)
           }
@@ -108,7 +108,7 @@ impl ArticleService {
             .await
     }
 
-    pub async fn count_articles(&self, query: ListArticlesQuery, user_id: Option<UserId>) -> Result<i64, AppError> {
+    pub async fn count_articles(&self, query: ListArticlesQuery, user_id: Option<UserId>) -> Result<u64, AppError> {
         self.article_repo
             .count_articles(
                 ListArticlesParams::from_query(query, user_id)
@@ -129,7 +129,7 @@ impl ArticleService {
         slug: &Slug,
     ) -> Result<(), AppError> {
 
-        let article = self.article_repo.get_article_by(IndexedArticleField::Slug, &slug).await?
+        let article = self.article_repo.get_article_by(IndexedArticleField::Slug, slug).await?
             .ok_or(AppError::NotFound)?;
 
         self.article_repo
@@ -143,7 +143,7 @@ impl ArticleService {
         slug: &Slug,
     ) -> Result<(), AppError> {
 
-      let article = self.article_repo.get_article_by(IndexedArticleField::Slug, &slug).await?
+      let article = self.article_repo.get_article_by(IndexedArticleField::Slug, slug).await?
         .ok_or(AppError::NotFound)?;
 
         self.article_repo

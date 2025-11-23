@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -46,5 +47,11 @@ impl Deref for PasswordHash {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<PasswordHash> for Value {
+    fn from(p: PasswordHash) -> Self {
+        Value::String(Some(Box::new(p.value().to_string())))
     }
 }

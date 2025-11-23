@@ -1,3 +1,5 @@
+use crate::persistence::schema::Users;
+
 pub enum IndexedUserField {
     Email,
     Username,
@@ -5,11 +7,11 @@ pub enum IndexedUserField {
 }
 
 impl IndexedUserField {
-    pub(crate) fn to_field_name(&self) -> &str {
+    pub(crate) fn to_field_name(&self) -> (Users, Users) {
         match self {
-            IndexedUserField::Email => "email",
-            IndexedUserField::Username => "username",
-            IndexedUserField::Id => "id",
+            IndexedUserField::Email => (Users::Table, Users::Email),
+            IndexedUserField::Username => (Users::Table, Users::Username),
+            IndexedUserField::Id => (Users::Table, Users::Id),
         }
     }
 }

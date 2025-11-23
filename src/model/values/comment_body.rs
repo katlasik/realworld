@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -53,5 +54,11 @@ impl Deref for CommentBody {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<CommentBody> for Value {
+    fn from(b: CommentBody) -> Self {
+        Value::String(Some(Box::new(b.value().to_string())))
     }
 }

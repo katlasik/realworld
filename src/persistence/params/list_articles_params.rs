@@ -16,10 +16,6 @@ pub struct ListArticlesParams {
 
 impl ListArticlesParams {
 
-  pub fn non_empty(&self) -> bool {
-    self.tag.is_some() || self.author.is_some() || self.favorited_by.is_some()
-  }
-
   pub fn from_query(query: ListArticlesQuery, user_id: Option<UserId>) -> ListArticlesParams {
 
     ListArticlesParams {

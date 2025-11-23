@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -61,5 +62,17 @@ impl Deref for Username {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<Username> for Value {
+    fn from(u: Username) -> Self {
+        Value::String(Some(Box::new(u.value().to_string())))
+    }
+}
+
+impl From<&Username> for Value {
+    fn from(u: &Username) -> Self {
+        Value::String(Some(Box::new(u.value().to_string())))
     }
 }

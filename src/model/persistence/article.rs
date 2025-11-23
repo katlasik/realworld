@@ -33,16 +33,4 @@ impl Article {
         }
     }
 
-  pub fn column_names(table: &str) -> Vec<String> {
-      [
-        "id",
-        "slug",
-        "title",
-        "description",
-        "body",
-        "author_id",
-        "created_at",
-        "updated_at",
-      ].iter().map(|col| format!("{}.{}", table, col)).collect()
-    }
 }

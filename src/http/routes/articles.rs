@@ -39,7 +39,7 @@ async fn list_articles(
     let user_id = auth.as_ref().map(|u| u.user_id);
 
     let articles = state.article_service.list_articles(query.clone(), user_id).await?;
-    let articles_count = state.article_service.count_articles(query, user_id).await? as u64;
+    let articles_count = state.article_service.count_articles(query, user_id).await?;
 
     let views: Vec<_> = articles.iter().map(ArticleListItem::from_article_view).collect();
 

@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -52,5 +53,11 @@ impl Deref for Email {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<Email> for Value {
+    fn from(e: Email) -> Self {
+        Value::String(Some(Box::new(e.value().to_string())))
     }
 }

@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -53,5 +54,11 @@ impl Deref for ArticleDescription {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl From<ArticleDescription> for Value {
+    fn from(d: ArticleDescription) -> Self {
+        Value::String(Some(Box::new(d.value().to_string())))
     }
 }

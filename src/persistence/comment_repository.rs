@@ -6,51 +6,67 @@ use crate::model::values::article_id::ArticleId;
 use crate::model::values::comment_id::CommentId;
 use crate::model::values::user_id::UserId;
 use crate::persistence::params::insert_comment_params::InsertCommentParams;
+use crate::persistence::schema::{Comments, UserFollows, Users};
 use anyhow::Result;
-use sqlx::{Postgres, QueryBuilder, Row};
+use sea_query::{Alias, Expr, Order, PostgresQueryBuilder, Query};
+use sea_query_binder::SqlxBinder;
+use sqlx::Row;
 
 #[derive(Clone)]
 pub struct CommentRepository {
     database: Database,
 }
 
-fn comment_view_cte<'a>(user_id: Option<UserId>) -> QueryBuilder<'a, Postgres> {
-    let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new(
-        r"
-        WITH comment_view AS (
-            SELECT
-                c.id,
-                c.body,
-                c.created_at,
-                c.updated_at,
-                u.username as author_username,
-                u.bio as author_bio,
-                u.image as author_image
-        "
+fn comment_view_query(user_id: Option<UserId>) -> sea_query::SelectStatement {
+
+  let mut select = Query::select();
+
+  select
+    .column((Comments::Table, Comments::Id))
+    .column((Comments::Table, Comments::Body))
+    .column((Comments::Table, Comments::CreatedAt))
+    .column((Comments::Table, Comments::UpdatedAt))
+    .expr_as(
+      Expr::col((Users::Table, Users::Username)),
+      Alias::new("author_username"),
+    )
+    .expr_as(
+      Expr::col((Users::Table, Users::Bio)),
+      Alias::new("author_bio"),
+    )
+    .expr_as(
+      Expr::col((Users::Table, Users::Image)),
+      Alias::new("author_image"),
+    )
+    .from(Comments::Table)
+    .inner_join(
+      Users::Table,
+      Expr::col((Comments::Table, Comments::AuthorId))
+        .eq(Expr::col((Users::Table, Users::Id))),
     );
 
-    if let Some(user_id) = user_id {
-        query_builder.push(",
-                EXISTS(
-                    SELECT 1 FROM user_follows uf
-                    WHERE uf.follower_id = ");
-        query_builder.push_bind(user_id);
-        query_builder.push("
-                      AND uf.followee_id = u.id
-                ) as following ");
-    } else {
-        query_builder.push(", FALSE as following ");
-    }
-
-    query_builder.push(
-        r"
-            FROM comments c
-                INNER JOIN users u ON c.author_id = u.id
+  match user_id {
+    Some(user_id) => {
+      let subquery = Query::select()
+        .expr(Expr::val(1))
+        .from(UserFollows::Table)
+        .and_where(
+          Expr::col((UserFollows::Table, UserFollows::FollowerId)).eq(user_id)
+            .and(
+              Expr::col((UserFollows::Table, UserFollows::FolloweeId))
+                .eq(Expr::col((Users::Table, Users::Id))),
+            ),
         )
-        "
-    );
+        .to_owned();
 
-    query_builder
+      select.expr_as(Expr::exists(subquery), Alias::new("following"));
+    }
+    None => {
+      select.expr_as(Expr::val(false), Alias::new("following"));
+    }
+  }
+
+  select
 }
 
 impl CommentRepository {
@@ -59,32 +75,33 @@ impl CommentRepository {
     }
 
     pub async fn insert_comment(&self, params: InsertCommentParams) -> Result<Comment, AppError> {
-        let row = sqlx::query(
-            r#"
-            INSERT INTO comments (body, article_id, author_id)
-            VALUES ($1, $2, $3)
-            RETURNING id, body, article_id, author_id, created_at, updated_at
-            "#,
-        )
-        .bind(&params.body)
-        .bind(params.article_id)
-        .bind(params.author_id)
-        .fetch_one(self.database.pool())
-        .await?;
+        let (sql, values) = Query::insert()
+            .into_table(Comments::Table)
+            .columns([Comments::Body, Comments::ArticleId, Comments::AuthorId])
+            .values_panic([
+                params.body.into(),
+                params.article_id.into(),
+                params.author_id.into(),
+            ])
+            .returning_all()
+            .build_sqlx(PostgresQueryBuilder);
+
+        let row = sqlx::query_with(&sql, values)
+            .fetch_one(self.database.pool())
+            .await?;
 
         Ok(Comment::from_row(row))
     }
 
     pub async fn delete_comment(&self, comment_id: CommentId) -> Result<(), AppError> {
-        sqlx::query(
-            r#"
-            DELETE FROM comments
-            WHERE id = $1
-            "#,
-        )
-        .bind(comment_id)
-        .execute(self.database.pool())
-        .await?;
+        let (sql, values) = Query::delete()
+            .from_table(Comments::Table)
+            .and_where(Expr::col(Comments::Id).eq(comment_id))
+            .build_sqlx(PostgresQueryBuilder);
+
+        sqlx::query_with(&sql, values)
+            .execute(self.database.pool())
+            .await?;
 
         Ok(())
     }
@@ -94,18 +111,20 @@ impl CommentRepository {
         comment_id: CommentId,
         user_id: UserId,
     ) -> Result<bool, AppError> {
-        let row = sqlx::query(
-            r#"
-            SELECT EXISTS(
-                SELECT 1 FROM comments
-                WHERE id = $1 AND author_id = $2
-            ) as is_author
-            "#,
-        )
-        .bind(comment_id)
-        .bind(user_id)
-        .fetch_one(self.database.pool())
-        .await?;
+        let subquery = Query::select()
+            .expr(Expr::value(1))
+            .from(Comments::Table)
+            .and_where(Expr::col(Comments::Id).eq(comment_id))
+            .and_where(Expr::col(Comments::AuthorId).eq(user_id))
+            .to_owned();
+
+        let (sql, values) = Query::select()
+            .expr_as(Expr::exists(subquery), "is_author")
+            .build_sqlx(PostgresQueryBuilder);
+
+        let row = sqlx::query_with(&sql, values)
+            .fetch_one(self.database.pool())
+            .await?;
 
         Ok(row.get("is_author"))
     }
@@ -115,24 +134,16 @@ impl CommentRepository {
         article_id: ArticleId,
         user_id: Option<UserId>,
     ) -> Result<Vec<CommentView>, AppError> {
-        let mut query = comment_view_cte(user_id);
+        let mut query = comment_view_query(user_id);
 
-        query.push(format!(
-            "SELECT {} FROM comment_view WHERE id IN (SELECT id FROM comments WHERE article_id = ",
-            CommentView::column_names("comment_view").join(", ")
-        ));
-        query.push_bind(article_id);
-        query.push(") ORDER BY created_at DESC");
+      let (sql, values) = query.and_where(Expr::col(Comments::ArticleId).eq(article_id))
+          .order_by(Comments::CreatedAt, Order::Desc)
+        .build_sqlx(PostgresQueryBuilder);
 
-        let mut sql_query = sqlx::query(query.sql());
 
-        if user_id.is_some() {
-            sql_query = sql_query.bind(user_id);
-        }
-
-        sql_query = sql_query.bind(article_id);
-
-        let rows = sql_query.fetch_all(self.database.pool()).await?;
+      let rows = sqlx::query_with(&sql, values)
+        .fetch_all(self.database.pool())
+        .await?;
 
         Ok(rows.into_iter().map(CommentView::from_row).collect())
     }
@@ -142,24 +153,17 @@ impl CommentRepository {
         comment_id: CommentId,
         user_id: Option<UserId>,
     ) -> Result<CommentView, AppError> {
-        let mut query = comment_view_cte(user_id);
+      let mut query = comment_view_query(user_id);
 
-        query.push(format!(
-            "SELECT {} FROM comment_view WHERE id = ",
-            CommentView::column_names("comment_view").join(", ")
-        ));
-        query.push_bind(comment_id);
+      let (sql, values) = query.and_where(Expr::col((Comments::Table, Comments::Id)).eq(comment_id))
+        .order_by(Comments::CreatedAt, Order::Desc)
+        .build_sqlx(PostgresQueryBuilder);
 
-        let mut sql_query = sqlx::query(query.sql());
 
-        if user_id.is_some() {
-            sql_query = sql_query.bind(user_id);
-        }
+      let row = sqlx::query_with(&sql, values)
+        .fetch_one(self.database.pool())
+        .await?;
 
-        sql_query = sql_query.bind(comment_id);
-
-        let row = sql_query.fetch_one(self.database.pool()).await?;
-
-        Ok(CommentView::from_row(row))
+      Ok(CommentView::from_row(row))
     }
 }

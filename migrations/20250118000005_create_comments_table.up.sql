@@ -1,6 +1,6 @@
 -- Create comments table
 CREATE TABLE IF NOT EXISTS comments (
-    id BIGSERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     body TEXT NOT NULL,
     article_id UUID NOT NULL,
     author_id UUID NOT NULL,

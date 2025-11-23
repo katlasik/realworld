@@ -2,7 +2,6 @@ use crate::app_error::AppError;
 use crate::http::AppState;
 use crate::http::dto::profile::{Profile, ProfileResponse};
 use crate::http::extractors::auth_token::AuthToken;
-use crate::model::indexed_user_field::IndexedUserField;
 use crate::model::values::username::Username;
 use axum::extract::{Path, State};
 use axum::routing::{delete, get, post};
@@ -25,7 +24,7 @@ async fn get_profile(
 
     let user = state
         .user_service
-        .get_user_by(IndexedUserField::Username, username.clone())
+        .get_user_by_username( username.clone())
         .await?
         .ok_or_else(|| AppError::NotFound)?;
 
@@ -52,7 +51,7 @@ async fn follow_user(
 
     let user = state
         .user_service
-        .get_user_by(IndexedUserField::Username, username)
+        .get_user_by_username(username)
         .await?
         .ok_or_else(|| AppError::NotFound)?;
 
@@ -75,7 +74,7 @@ async fn unfollow_user(
 
     let user = state
         .user_service
-        .get_user_by(IndexedUserField::Username, username)
+        .get_user_by_username(username)
         .await?
         .ok_or_else(|| AppError::NotFound)?;
 

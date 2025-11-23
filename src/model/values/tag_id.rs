@@ -1,3 +1,4 @@
+use sea_query::Value;
 use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use std::fmt::{Display, Formatter};
@@ -38,5 +39,11 @@ impl From<TagId> for Uuid {
 impl Display for TagId {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl From<TagId> for Value {
+    fn from(id: TagId) -> Self {
+        Value::Uuid(Some(Box::new(id.value())))
     }
 }
