@@ -92,17 +92,16 @@ async fn create_article(
     State(state): State<AppState>,
     auth: AuthToken,
     Json(payload): Json<CreateArticleRequest>,
-) -> Result<Json<ArticleResponse>, AppError> {
+) -> Result<(StatusCode, Json<ArticleResponse>), AppError> {
     info!("Create article: {}", payload.article.title);
 
     let command = CreateArticleCommand::from_request(payload, auth.user_id);
 
     let article_view = state.article_service.create_article(command).await?;
-  
 
     let article = ArticleItem::from_article_view(&article_view);
-  
-    Ok(Json(ArticleResponse { article }))
+
+    Ok((StatusCode::CREATED, Json(ArticleResponse { article })))
 }
 
 async fn update_article(
@@ -141,17 +140,15 @@ async fn favorite_article(
 ) -> Result<Json<ArticleResponse>, AppError> {
     info!("Favorite article: {}", slug);
 
-    let article = state.article_service.get_article(&slug, Some(auth.user_id)).await?
-        .ok_or_else(|| AppError::NotFound)?;
-
     state
         .article_service
-        .favorite_article(auth.user_id, article.id)
+        .favorite_article(auth.user_id, &slug)
         .await?;
 
+    let article = state.article_service.get_article(&slug, Some(auth.user_id)).await?
+      .ok_or_else(|| AppError::NotFound)?;
 
-    let mut article = ArticleItem::from_article_view(&article);
-    article.favorited = true;
+    let article = ArticleItem::from_article_view(&article);
 
     Ok(Json(ArticleResponse { article }))
 }
@@ -163,17 +160,15 @@ async fn unfavorite_article(
 ) -> Result<Json<ArticleResponse>, AppError> {
     info!("Unfavorite article: {}", slug);
 
+    state
+        .article_service
+        .unfavorite_article(auth.user_id, &slug)
+        .await?;
+
   let article = state.article_service.get_article(&slug, Some(auth.user_id)).await?
     .ok_or_else(|| AppError::NotFound)?;
 
-    state
-        .article_service
-        .unfavorite_article(auth.user_id, article.id)
-        .await?;
-
-
-  let mut article = ArticleItem::from_article_view(&article);
-  article.favorited = true;
+  let article = ArticleItem::from_article_view(&article);
 
   Ok(Json(ArticleResponse { article }))
 }

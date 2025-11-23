@@ -3,7 +3,6 @@ use crate::domain::commands::create_article_command::CreateArticleCommand;
 use crate::domain::commands::get_feed_query::GetFeedQuery;
 use crate::domain::commands::list_articles_query::ListArticlesQuery;
 use crate::domain::commands::update_article_command::UpdateArticleCommand;
-use crate::model::values::article_id::ArticleId;
 use crate::model::values::slug::Slug;
 use crate::model::values::tag_name::TagName;
 use crate::model::values::user_id::UserId;
@@ -67,7 +66,7 @@ impl ArticleService {
 
     pub async fn update_article(&self, command: UpdateArticleCommand, user_id: UserId) -> Result<ArticleView, AppError> {
 
-          let article = self.article_repo.get_article_by(IndexedArticleField::Slug, &command.slug).await?
+          let article = self.article_repo.get_article_by(IndexedArticleField::Slug, &command.old_slug).await?
             .ok_or(AppError::NotFound)?;
 
           let params = command.to_params(article.id);
@@ -76,8 +75,10 @@ impl ArticleService {
             Err(AppError::Forbidden)
           } else {
 
-            self.verify_slug(&command.slug).await?;
-
+            if let Some(ref slug) = params.slug {
+              self.verify_slug(slug).await?;
+            }
+            
             let article = self.article_repo.update_article(params).await?;
             Ok(self.article_repo.get_article_by_id(article.id, Some(user_id)).await?)
           }
@@ -85,7 +86,7 @@ impl ArticleService {
 
     pub async fn delete_article(&self, slug: Slug, user_id: UserId) -> Result<(), AppError> {
 
-       let article = self.article_repo.get_article_by(IndexedArticleField::Slug, slug).await?;
+       let article = self.article_repo.get_article_by(IndexedArticleField::Slug, &slug).await?;
 
         if let Some(article) = article {
           if article.author_id != user_id {
@@ -125,20 +126,28 @@ impl ArticleService {
     pub async fn favorite_article(
         &self,
         user_id: UserId,
-        article_id: ArticleId,
+        slug: &Slug,
     ) -> Result<(), AppError> {
+
+        let article = self.article_repo.get_article_by(IndexedArticleField::Slug, &slug).await?
+            .ok_or(AppError::NotFound)?;
+
         self.article_repo
-            .favorite_article(user_id, article_id)
+            .favorite_article(user_id, article.id)
             .await
     }
 
     pub async fn unfavorite_article(
         &self,
         user_id: UserId,
-        article_id: ArticleId,
+        slug: &Slug,
     ) -> Result<(), AppError> {
+
+      let article = self.article_repo.get_article_by(IndexedArticleField::Slug, &slug).await?
+        .ok_or(AppError::NotFound)?;
+
         self.article_repo
-            .unfavorite_article(user_id, article_id)
+            .unfavorite_article(user_id, article.id)
             .await
     }
 

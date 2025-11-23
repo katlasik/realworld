@@ -2,7 +2,6 @@ mod common;
 
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
-use realworld::tracing::init_tracing;
 use serde_json::json;
 use tower::ServiceExt;
 
@@ -111,7 +110,6 @@ async fn test_get_current_user_with_invalid_token_fails() {
 
 #[tokio::test]
 async fn test_update_user() {
-    init_tracing();
 
     // Given
     let app = common::create_test_app().await;

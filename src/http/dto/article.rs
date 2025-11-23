@@ -112,7 +112,7 @@ pub struct CreateArticle {
     pub description: ArticleDescription,
     pub body: ArticleBody,
     #[serde(rename = "tagList")]
-    pub tag_list: Vec<TagName>,
+    pub tag_list: Option<Vec<TagName>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

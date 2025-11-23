@@ -23,7 +23,7 @@ async fn add_comment(
     auth: AuthToken,
     Path(slug): Path<Slug>,
     Json(payload): Json<CreateCommentRequest>,
-) -> Result<Json<CommentResponse>, AppError> {
+) -> Result<(StatusCode, Json<CommentResponse>), AppError> {
     info!("Add comment to article: {}", slug);
 
     let article = state
@@ -41,7 +41,7 @@ async fn add_comment(
 
     let comment = CommentItem::from_comment_view(comment_view);
 
-    Ok(Json(CommentResponse { comment }))
+    Ok((StatusCode::CREATED, Json(CommentResponse { comment })))
 }
 
 async fn get_comments(

@@ -8,6 +8,7 @@ use crate::http::dto::user::{UserData, UserResponse};
 use axum::extract::State;
 use axum::routing::post;
 use axum::{Json, Router};
+use axum::http::StatusCode;
 use tracing::info;
 
 pub(crate) fn auth_routes() -> Router<AppState> {
@@ -36,7 +37,7 @@ async fn login(
 async fn register(
     State(app_state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
-) -> Result<Json<UserResponse>, AppError> {
+) -> Result<(StatusCode, Json<UserResponse>), AppError> {
     info!("Registration attempt for email: {}", payload.user.email);
 
     let command = RegisterCommand::from_request(payload);
@@ -53,5 +54,5 @@ async fn register(
         image: user.image,
     };
 
-    Ok(Json(UserResponse { user }))
+    Ok((StatusCode::CREATED, Json(UserResponse { user })))
 }

@@ -99,11 +99,11 @@ impl ArticleRepository {
         Ok(Article::from_row(row))
     }
 
-  pub async fn get_article_by<T>(&self, field: IndexedArticleField, value: T) -> Result<Option<Article>, AppError>
+  pub async fn get_article_by<T>(&self, field: IndexedArticleField, value: &T) -> Result<Option<Article>, AppError>
   where T: for<'a> sqlx::Encode<'a, Postgres> + sqlx::Type<Postgres> + Send
   {
 
-    let sql = format!("SELECT {} FROM article_view WHERE {} = $1", Article::column_names("article_view").join(", "), field.to_field_name());
+    let sql = format!("SELECT {} FROM articles WHERE {} = $1", Article::column_names("articles").join(", "), field.to_field_name());
 
     let query = sqlx::query(&sql);
 
@@ -114,8 +114,8 @@ impl ArticleRepository {
     Ok(row.map(Article::from_row))
   }
 
-    pub async fn get_article_view_by<T>(&self, field: IndexedArticleField, value: T, user_id: Option<UserId>) -> Result<Option<ArticleView>, AppError>
-     where T: for<'a> sqlx::Encode<'a, Postgres> + sqlx::Type<Postgres> + Send + Copy
+    pub async fn get_article_view_by<T>(&self, field: IndexedArticleField, value: &T, user_id: Option<UserId>) -> Result<Option<ArticleView>, AppError>
+     where T: for<'a> sqlx::Encode<'a, Postgres> + sqlx::Type<Postgres> + Send
     {
 
         let mut query = article_view_cte(user_id);
@@ -152,7 +152,7 @@ impl ArticleRepository {
 
       query.push_bind(article_id);
 
-      let row = sqlx::query(query.sql())
+      let row = query.build()
         .fetch_one(self.database.pool())
         .await?;
 

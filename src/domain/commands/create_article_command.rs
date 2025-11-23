@@ -22,7 +22,7 @@ impl CreateArticleCommand {
             title: dto.article.title,
             description: dto.article.description,
             body: dto.article.body,
-            tag_list: dto.article.tag_list,
+            tag_list: dto.article.tag_list.unwrap_or_default(),
             author_id,
         }
     }

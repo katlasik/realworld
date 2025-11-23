@@ -1,15 +1,25 @@
+use std::sync::Once;
 use axum::Router;
-use axum::body::Body;
 use rand::Rng;
-use realworld::app_config::{AppConfig, DatabaseConfig, HttpConfig};
+use realworld::app_config::AppConfig;
 use realworld::application::create_app_state;
-use realworld::database::connect_db;
 use realworld::http::router;
-use realworld::tracing::init_tracing;
-use serde::Serialize;
 use sqlx::postgres::PgPoolOptions;
 use tracing::info;
 use tryphon::{Config, EnvOverrides};
+
+static INIT: Once = Once::new();
+
+pub fn init_tracing() {
+  INIT.call_once_force(|_| {
+    tracing_subscriber::fmt()
+      .with_test_writer()
+      .with_env_filter(
+        std::env::var("RUST_LOG").unwrap_or_else(|_| "debug".to_string())
+      )
+      .init();
+  });
+}
 
 pub async fn create_test_app() -> Router {
     let db = TestDatabase::new("realworld".to_string(), "password".to_string())
@@ -23,6 +33,8 @@ pub async fn create_test_app() -> Router {
     let config = AppConfig::load().unwrap();
 
     let app_state = create_app_state(&config).await;
+
+    init_tracing();
 
     router(app_state)
 }
@@ -50,6 +62,18 @@ impl TestDatabase {
         sqlx::query(&query).execute(&db).await?;
 
         info!("Created test database: {}", name);
+
+        // Run migrations on the new database
+        let test_db = PgPoolOptions::new()
+            .max_connections(1)
+            .connect(format!("postgresql://{}:{}@localhost:5432/{}", user, password, name).as_str())
+            .await?;
+
+        sqlx::migrate!("./migrations")
+            .run(&test_db)
+            .await?;
+
+        info!("Ran migrations on test database: {}", name);
 
         Ok(TestDatabase { name })
     }
