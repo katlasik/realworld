@@ -52,9 +52,12 @@ fn favorited_subquery(favorited_by_username: Username) -> SelectStatement {
         .to_owned()
 }
 
-fn build_article_view_query(user_id: Option<UserId>, mut where_statement: impl FnMut(&mut SelectStatement)) -> SelectStatement {
+fn build_article_view_query(
+    user_id: Option<UserId>,
+    mut where_statement: impl FnMut(&mut SelectStatement),
+) -> SelectStatement {
     let mut query = Query::select();
-      query
+    query
           .column((Articles::Table, Articles::Id))
           .column((Articles::Table, Articles::Slug))
           .column((Articles::Table, Articles::Title))
@@ -87,36 +90,33 @@ fn build_article_view_query(user_id: Option<UserId>, mut where_statement: impl F
             Alias::new("tag_list"),
           );
 
-            match user_id {
-                Some(user_id) => {
-                    let following_subquery = following_subquery(user_id);
+    match user_id {
+        Some(user_id) => {
+            let following_subquery = following_subquery(user_id);
 
-                    let favorited_subquery = Query::select()
-                        .expr(Expr::cust("1"))
-                        .from(ArticleFavorites::Table)
-                        .and_where(
-                            Expr::col((ArticleFavorites::Table, ArticleFavorites::UserId))
-                                .eq(user_id)
-                                .and(
-                                    Expr::col((
-                                        ArticleFavorites::Table,
-                                        ArticleFavorites::ArticleId,
-                                    ))
-                                    .eq(Expr::col((Articles::Table, Articles::Id))),
-                                ),
-                        )
-                        .to_owned();
+            let favorited_subquery = Query::select()
+                .expr(Expr::cust("1"))
+                .from(ArticleFavorites::Table)
+                .and_where(
+                    Expr::col((ArticleFavorites::Table, ArticleFavorites::UserId))
+                        .eq(user_id)
+                        .and(
+                            Expr::col((ArticleFavorites::Table, ArticleFavorites::ArticleId))
+                                .eq(Expr::col((Articles::Table, Articles::Id))),
+                        ),
+                )
+                .to_owned();
 
-                    query
-                        .expr_as(Expr::exists(following_subquery), Alias::new("following"))
-                        .expr_as(Expr::exists(favorited_subquery), Alias::new("favorited"));
-                }
-                None => {
-                    query
-                        .expr_as(Expr::cust("FALSE"), Alias::new("following"))
-                        .expr_as(Expr::cust("FALSE"), Alias::new("favorited"));
-                }
-            }
+            query
+                .expr_as(Expr::exists(following_subquery), Alias::new("following"))
+                .expr_as(Expr::exists(favorited_subquery), Alias::new("favorited"));
+        }
+        None => {
+            query
+                .expr_as(Expr::cust("FALSE"), Alias::new("following"))
+                .expr_as(Expr::cust("FALSE"), Alias::new("favorited"));
+        }
+    }
 
     query
         .from(Articles::Table)
@@ -141,48 +141,43 @@ fn build_article_view_query(user_id: Option<UserId>, mut where_statement: impl F
                 .eq(Expr::col((Articles::Table, Articles::Id))),
         );
 
-      where_statement(&mut query);
+    where_statement(&mut query);
 
-      query.group_by_col((Articles::Table, Articles::Id))
+    query
+        .group_by_col((Articles::Table, Articles::Id))
         .group_by_col((Users::Table, Users::Id));
 
     query
 }
 
 fn article_list_where_statement(params: &ListArticlesParams, query: &mut SelectStatement) {
-  if let Some(tag) = &params.tag {
-    query.and_where(
-      Expr::exists(
-        Query::select()
-          .column((ArticleTags::Table, ArticleTags::ArticleId))
-          .from(ArticleTags::Table)
-          .inner_join(
-            Tags::Table,
-            Expr::col((ArticleTags::Table, ArticleTags::TagId))
-              .eq(Expr::col((Tags::Table, Tags::Id))),
-          )
-          .and_where(
-            Expr::col((ArticleTags::Table, ArticleTags::ArticleId))
-              .eq(Expr::col((Articles::Table, Articles::Id)))
-              .and(Expr::col((Tags::Table, Tags::Name)).eq(tag)),
-          )
-          .to_owned(
-          )
-      )
-    );
-  }
+    if let Some(tag) = &params.tag {
+        query.and_where(Expr::exists(
+            Query::select()
+                .column((ArticleTags::Table, ArticleTags::ArticleId))
+                .from(ArticleTags::Table)
+                .inner_join(
+                    Tags::Table,
+                    Expr::col((ArticleTags::Table, ArticleTags::TagId))
+                        .eq(Expr::col((Tags::Table, Tags::Id))),
+                )
+                .and_where(
+                    Expr::col((ArticleTags::Table, ArticleTags::ArticleId))
+                        .eq(Expr::col((Articles::Table, Articles::Id)))
+                        .and(Expr::col((Tags::Table, Tags::Name)).eq(tag)),
+                )
+                .to_owned(),
+        ));
+    }
 
-  if let Some(author_username) = &params.author {
-    query
-      .and_where(Expr::col((Users::Table, Users::Username)).eq(author_username.clone()));
-  }
+    if let Some(author_username) = &params.author {
+        query.and_where(Expr::col((Users::Table, Users::Username)).eq(author_username.clone()));
+    }
 
-  if let Some(favorited_by_username) = &params.favorited_by {
-    let favorited_subquery = favorited_subquery(favorited_by_username.clone());
-    query.and_where(
-      Expr::col((Articles::Table, Articles::Id)).in_subquery(favorited_subquery),
-    );
-  }
+    if let Some(favorited_by_username) = &params.favorited_by {
+        let favorited_subquery = favorited_subquery(favorited_by_username.clone());
+        query.and_where(Expr::col((Articles::Table, Articles::Id)).in_subquery(favorited_subquery));
+    }
 }
 
 impl ArticleRepository {
@@ -254,12 +249,12 @@ impl ArticleRepository {
         user_id: Option<UserId>,
     ) -> Result<Option<ArticleView>, AppError>
     where
-        sea_query::Value: From<T>, T: Copy
+        sea_query::Value: From<T>,
+        T: Copy,
     {
-        let query = build_article_view_query(
-          user_id,
-          move |q| { q.and_where(Expr::col(field.to_field_name()).eq(value)); }
-        );
+        let query = build_article_view_query(user_id, move |q| {
+            q.and_where(Expr::col(field.to_field_name()).eq(value));
+        });
 
         let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
 
@@ -275,13 +270,11 @@ impl ArticleRepository {
         article_id: ArticleId,
         user_id: Option<UserId>,
     ) -> Result<ArticleView, AppError> {
-        let query = build_article_view_query(
-          user_id,
-          move |q| { q.and_where(Expr::col((Articles::Table, Articles::Id)).eq(article_id)); }
-        );
+        let query = build_article_view_query(user_id, move |q| {
+            q.and_where(Expr::col((Articles::Table, Articles::Id)).eq(article_id));
+        });
 
-        let (sql, values) = query
-            .build_sqlx(PostgresQueryBuilder);
+        let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
 
         let row = sqlx::query_with(&sql, values)
             .fetch_one(self.database.pool())
@@ -335,10 +328,8 @@ impl ArticleRepository {
         &self,
         params: ListArticlesParams,
     ) -> Result<Vec<ArticleListView>, AppError> {
-        let mut query = build_article_view_query(
-          params.user_id,
-          |q| article_list_where_statement(&params,q)
-        );
+        let mut query =
+            build_article_view_query(params.user_id, |q| article_list_where_statement(&params, q));
 
         let (sql, values) = query
             .order_by((Articles::Table, Articles::CreatedAt), Order::Desc)
@@ -354,15 +345,11 @@ impl ArticleRepository {
     }
 
     pub async fn count_articles(&self, params: ListArticlesParams) -> Result<u64, AppError> {
-
-        let subquery = build_article_view_query(
-          params.user_id,
-          |q| article_list_where_statement(&params,q)
-        );
+        let subquery =
+            build_article_view_query(params.user_id, |q| article_list_where_statement(&params, q));
         let mut query = Query::select();
-            query.expr_as(Expr::cust("COUNT(*)"), "count");
-      query.from_subquery(subquery, "a");
-
+        query.expr_as(Expr::cust("COUNT(*)"), "count");
+        query.from_subquery(subquery, "a");
 
         let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
 
@@ -380,9 +367,8 @@ impl ArticleRepository {
         limit: Option<Limit>,
         offset: Option<Offset>,
     ) -> Result<Vec<ArticleListView>, AppError> {
-        let mut query = build_article_view_query(Some(user_id),
-        |q| {
-          q.and_where(Expr::exists(following_subquery(user_id)));
+        let mut query = build_article_view_query(Some(user_id), |q| {
+            q.and_where(Expr::exists(following_subquery(user_id)));
         });
 
         let (sql, values) = query
@@ -399,17 +385,14 @@ impl ArticleRepository {
     }
 
     pub async fn count_feed_articles(&self, user_id: UserId) -> Result<u64, AppError> {
-        let subquery = build_article_view_query(
-          Some(user_id),
-          |q| {
+        let subquery = build_article_view_query(Some(user_id), |q| {
             q.and_where(Expr::exists(following_subquery(user_id)));
-          }
-        );
+        });
 
         let (sql, values) = Query::select()
             .expr_as(Expr::cust("COUNT(*)"), "count")
             .from_subquery(subquery, "a")
-          .build_sqlx(PostgresQueryBuilder);
+            .build_sqlx(PostgresQueryBuilder);
 
         let count: i64 = sqlx::query_with(&sql, values)
             .fetch_one(self.database.pool())

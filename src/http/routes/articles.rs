@@ -4,7 +4,10 @@ use crate::domain::commands::get_feed_query::GetFeedQuery;
 use crate::domain::commands::list_articles_query::ListArticlesQuery;
 use crate::domain::commands::update_article_command::UpdateArticleCommand;
 use crate::http::AppState;
-use crate::http::dto::article::{ArticleFeedListQuery, ArticleItem, ArticleListItem, ArticleListQuery, ArticleResponse, ArticlesResponse, CreateArticleRequest, UpdateArticleRequest};
+use crate::http::dto::article::{
+    ArticleFeedListQuery, ArticleItem, ArticleListItem, ArticleListQuery, ArticleResponse,
+    ArticlesResponse, CreateArticleRequest, UpdateArticleRequest,
+};
 use crate::http::extractors::auth_token::AuthToken;
 use crate::model::values::slug::Slug;
 use axum::extract::{Path, Query, State};

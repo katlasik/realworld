@@ -1,0 +1,3 @@
+[advisories]
+# It's only used for mysql by sea-query, since we're using postgres, it's not an issue.
+ignore = ["RUSTSEC-2023-0071"]

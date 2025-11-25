@@ -43,7 +43,7 @@ struct TestDatabase {
 
 fn random_string() -> String {
     let mut rand = rand::rng();
-    (0..25).map(|_| rand.random_range('a'..'z')).collect()
+    (0..25).map(|_| rand.random_range('a'..='z')).collect()
 }
 
 impl TestDatabase {

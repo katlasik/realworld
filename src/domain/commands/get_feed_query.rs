@@ -1,4 +1,4 @@
-use crate::http::dto::article::{ArticleFeedListQuery};
+use crate::http::dto::article::ArticleFeedListQuery;
 use crate::model::limit::Limit;
 use crate::model::offset::Offset;
 use crate::model::values::user_id::UserId;

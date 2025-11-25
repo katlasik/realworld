@@ -795,7 +795,11 @@ async fn test_filter_articles_by_tag() {
         }
     });
 
-    for payload in [article_with_rust, article_with_python, article_with_javascript] {
+    for payload in [
+        article_with_rust,
+        article_with_python,
+        article_with_javascript,
+    ] {
         app.clone()
             .oneshot(
                 Request::builder()
@@ -830,10 +834,12 @@ async fn test_filter_articles_by_tag() {
 
     assert_eq!(body["articlesCount"], 1);
     assert_eq!(body["articles"][0]["title"], "Rust Article");
-    assert!(body["articles"][0]["tagList"]
-        .as_array()
-        .unwrap()
-        .contains(&json!("rust")));
+    assert!(
+        body["articles"][0]["tagList"]
+            .as_array()
+            .unwrap()
+            .contains(&json!("rust"))
+    );
 }
 
 #[tokio::test]
@@ -869,7 +875,9 @@ async fn test_filter_articles_by_author() {
                 .uri("/api/articles")
                 .header("content-type", "application/json")
                 .header("authorization", format!("Token {}", author1_token))
-                .body(Body::from(serde_json::to_string(&article_by_author1).unwrap()))
+                .body(Body::from(
+                    serde_json::to_string(&article_by_author1).unwrap(),
+                ))
                 .unwrap(),
         )
         .await
@@ -882,7 +890,9 @@ async fn test_filter_articles_by_author() {
                 .uri("/api/articles")
                 .header("content-type", "application/json")
                 .header("authorization", format!("Token {}", author2_token))
-                .body(Body::from(serde_json::to_string(&article_by_author2).unwrap()))
+                .body(Body::from(
+                    serde_json::to_string(&article_by_author2).unwrap(),
+                ))
                 .unwrap(),
         )
         .await
@@ -1184,8 +1194,10 @@ async fn test_combine_multiple_filters() {
     assert_eq!(body["articlesCount"], 1);
     assert_eq!(body["articles"][0]["title"], "Rust by Author 1");
     assert_eq!(body["articles"][0]["author"]["username"], "author1");
-    assert!(body["articles"][0]["tagList"]
-        .as_array()
-        .unwrap()
-        .contains(&json!("rust")));
+    assert!(
+        body["articles"][0]["tagList"]
+            .as_array()
+            .unwrap()
+            .contains(&json!("rust"))
+    );
 }

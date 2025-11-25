@@ -141,7 +141,6 @@ pub struct ArticleListQuery {
 
 #[derive(Deserialize, Debug)]
 pub struct ArticleFeedListQuery {
-  pub limit: Option<Limit>,
-  pub offset: Option<Offset>,
+    pub limit: Option<Limit>,
+    pub offset: Option<Offset>,
 }
-
