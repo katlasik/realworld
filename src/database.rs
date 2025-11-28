@@ -14,13 +14,14 @@ impl Database {
 }
 
 pub async fn connect_db(config: &DatabaseConfig) -> Result<Database, Error> {
-  info!(
+    info!(
         "Connecting to database {} with user {} successfully. Hash of password: {}.",
-        config.connection_url(), config.user, config.password
+        config.connection_url(),
+        config.user,
+        config.password
     );
 
-
-  let db = PgPoolOptions::new()
+    let db = PgPoolOptions::new()
         .max_connections(config.max_connections)
         .connect(&config.connection_string())
         .await?;

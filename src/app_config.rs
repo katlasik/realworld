@@ -40,18 +40,16 @@ pub struct DatabaseConfig {
 }
 
 impl DatabaseConfig {
-
     pub fn connection_url(&self) -> String {
-      format!(
-        "{}:{}/{}",
-        self.host, self.port, self.database
-      )
+        format!("{}:{}/{}", self.host, self.port, self.database)
     }
 
     pub fn connection_string(&self) -> String {
         format!(
-          "postgresql://{}:{}@{}",
-          self.user, *self.password, self.connection_url()
+            "postgresql://{}:{}@{}",
+            self.user,
+            *self.password,
+            self.connection_url()
         )
     }
 }
