@@ -56,14 +56,12 @@
       "Sid": "IAMManage",
       "Effect": "Allow",
       "Action": [
-        "iam:CreateRole",
-        "iam:DeleteRole",
-        "iam:GetRole",
-        "iam:UpdateRole",
+        "iam:*Role*",
+        "iam:*Policy*",
         "iam:PassRole",
-        "iam:*RolePolicy",
-        "iam:*Policy",
-        "iam:*Tag*"
+        "iam:*Tag*",
+        "iam:CreateServiceLinkedRole",
+        "iam:DeleteServiceLinkedRole"
       ],
       "Resource": "*"
     },
