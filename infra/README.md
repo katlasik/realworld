@@ -40,25 +40,31 @@ The infrastructure includes:
 
 ## Initial Setup
 
-1. **Copy example variables:**
-   ```bash
-   cd infra
-   cp terraform.tfvars.example terraform.tfvars
-   ```
-2. **Bootstrap Terraform state backend:**
+1. **Bootstrap Terraform state backend:**
 
    The Terraform state is stored in S3 with DynamoDB for locking. Bootstrap it first:
 
    ```bash
+   cd infra
    # Create S3 bucket and DynamoDB table for the environment
-   ./manage-state.sh bootstrap dev
+   .setup/setup-terraform.sh bootstrap dev
    ```
 
    This creates:
    - S3 bucket: `realworld-dev-terraform-state`
+     - Versioning enabled
+     - AES256 encryption
+     - Public access blocked
    - DynamoDB table: `realworld-dev-terraform-lock`
 
-4. **Initialize Terraform:**
+   Both resources are tagged with Environment, Name, Project, and ManagedBy tags.
+
+2. **Navigate to environment directory:**
+   ```bash
+   cd tf/envs/dev  # or cd tf/envs/test for test environment
+   ```
+
+3. **Initialize Terraform:**
    ```bash
    terraform init
    ```
@@ -125,5 +131,5 @@ terraform destroy
 
 To destroy the state backend (after destroying all infrastructure):
 ```bash
-./manage-state.sh teardown dev
+./setup-terraform.sh teardown dev
 ```

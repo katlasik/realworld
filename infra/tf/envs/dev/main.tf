@@ -1,5 +1,5 @@
 module "realworld" {
   source = "../.."
 
-  environment     = "dev"
+  environment = "dev"
 }

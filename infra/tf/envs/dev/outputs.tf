@@ -1,102 +1,104 @@
+# Re-export module outputs for environment-specific access
+
 output "vpc_id" {
   description = "VPC ID"
-  value       = aws_vpc.main.id
+  value       = module.realworld.vpc_id
 }
 
 output "public_subnet_ids" {
   description = "Public subnet IDs"
-  value       = aws_subnet.public[*].id
+  value       = module.realworld.public_subnet_ids
 }
 
 output "private_subnet_ids" {
   description = "Private subnet IDs"
-  value       = aws_subnet.private[*].id
+  value       = module.realworld.private_subnet_ids
 }
 
 output "alb_dns_name" {
   description = "DNS name of the Application Load Balancer"
-  value       = aws_lb.main.dns_name
+  value       = module.realworld.alb_dns_name
 }
 
 output "alb_zone_id" {
   description = "Zone ID of the Application Load Balancer"
-  value       = aws_lb.main.zone_id
+  value       = module.realworld.alb_zone_id
 }
 
 output "alb_url" {
   description = "URL of the Application Load Balancer"
-  value       = "http://${aws_lb.main.dns_name}"
+  value       = module.realworld.alb_url
 }
 
 output "rds_endpoint" {
   description = "RDS endpoint"
-  value       = aws_db_instance.main.endpoint
+  value       = module.realworld.rds_endpoint
 }
 
 output "rds_address" {
   description = "RDS address"
-  value       = aws_db_instance.main.address
+  value       = module.realworld.rds_address
 }
 
 output "rds_port" {
   description = "RDS port"
-  value       = aws_db_instance.main.port
+  value       = module.realworld.rds_port
 }
 
 output "rds_security_group_id" {
   description = "RDS security group ID"
-  value       = aws_security_group.rds.id
+  value       = module.realworld.rds_security_group_id
 }
 
 output "ecs_cluster_name" {
   description = "ECS cluster name"
-  value       = aws_ecs_cluster.main.name
+  value       = module.realworld.ecs_cluster_name
 }
 
 output "ecs_service_name" {
   description = "ECS service name"
-  value       = aws_ecs_service.app.name
+  value       = module.realworld.ecs_service_name
 }
 
 output "cloudwatch_log_group" {
   description = "CloudWatch log group name"
-  value       = aws_cloudwatch_log_group.app.name
+  value       = module.realworld.cloudwatch_log_group
 }
 
 output "db_password_secret_arn" {
   description = "ARN of the database password secret in Secrets Manager"
-  value       = aws_secretsmanager_secret.db_password.arn
+  value       = module.realworld.db_password_secret_arn
   sensitive   = true
 }
 
 output "jwt_secret_arn" {
   description = "ARN of the JWT secret in Secrets Manager"
-  value       = aws_secretsmanager_secret.jwt_secret.arn
+  value       = module.realworld.jwt_secret_arn
   sensitive   = true
 }
 
 output "password_pepper_secret_arn" {
   description = "ARN of the password pepper secret in Secrets Manager"
-  value       = aws_secretsmanager_secret.password_pepper.arn
+  value       = module.realworld.password_pepper_secret_arn
   sensitive   = true
 }
 
 output "bastion_instance_id" {
   description = "Bastion instance ID"
-  value       = aws_instance.bastion.id
+  value       = module.realworld.bastion_instance_id
 }
 
 output "bastion_private_ip" {
   description = "Bastion private IP address"
-  value       = aws_instance.bastion.private_ip
+  value       = module.realworld.bastion_private_ip
 }
 
 output "eic_endpoint_id" {
   description = "EC2 Instance Connect Endpoint ID"
-  value       = aws_ec2_instance_connect_endpoint.main.id
+  value       = module.realworld.eic_endpoint_id
 }
 
 output "bastion_connect_command" {
   description = "Command to connect to bastion via EC2 Instance Connect"
-  value       = "aws ec2-instance-connect ssh --instance-id ${aws_instance.bastion.id} --connection-type eice"
+  value       = module.realworld.bastion_connect_command
 }

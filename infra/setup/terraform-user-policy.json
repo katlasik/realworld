@@ -58,12 +58,47 @@
       "Action": [
         "iam:*Role*",
         "iam:*Policy*",
-        "iam:PassRole",
-        "iam:*Tag*",
-        "iam:CreateServiceLinkedRole",
-        "iam:DeleteServiceLinkedRole"
+        "iam:*InstanceProfile*",
+        "iam:*Tag*"
       ],
-      "Resource": "*"
+      "Resource": [
+        "arn:aws:iam::*:policy/realworld-*",
+        "arn:aws:iam::*:role/realworld-*",
+        "arn:aws:iam::*:instance-profile/realworld-*"
+      ]
+    },
+    {
+      "Sid": "IAMServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole",
+        "iam:DeleteServiceLinkedRole",
+        "iam:GetServiceLinkedRoleDeletionStatus"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:role/aws-service-role/ecs.amazonaws.com/*",
+        "arn:aws:iam::*:role/aws-service-role/elasticloadbalancing.amazonaws.com/*"
+      ]
+    },
+    {
+      "Sid": "IAMReadServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": "iam:GetRole",
+      "Resource": "arn:aws:iam::*:role/aws-service-role/*"
+    },
+    {
+      "Sid": "IAMPassRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::*:role/realworld-*",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "ecs-tasks.amazonaws.com",
+            "ec2.amazonaws.com"
+          ]
+        }
+      }
     },
     {
       "Sid": "LogsManage",
@@ -78,6 +113,14 @@
       "Effect": "Allow",
       "Action": [
         "secretsmanager:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SSMManage",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:*"
       ],
       "Resource": "*"
     },

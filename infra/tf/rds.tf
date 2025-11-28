@@ -36,6 +36,7 @@ resource "aws_db_instance" "main" {
   maintenance_window      = "mon:04:00-mon:05:00"
 
   deletion_protection = false
+  skip_final_snapshot = true
 
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
 
